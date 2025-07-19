@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { 
   Upload, 
   FileAudio, 
@@ -11,6 +11,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { useAppStore } from '../store';
+import AudioUploader from '../components/audio/AudioUploader';
 
 const Dashboard: React.FC = () => {
   const { audioFiles, analysisResults } = useAppStore();
@@ -73,6 +74,10 @@ const Dashboard: React.FC = () => {
     }
   ];
 
+  const handleAudioUpload = (file: File) => {
+    console.log('Audio file uploaded:', file.name);
+  };
+
   return (
     <div className="p-6 pt-8">
       <div className="mb-8">
@@ -108,24 +113,16 @@ const Dashboard: React.FC = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      {/* Main Content Grid with Equal Heights */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Quick Actions - Left Side */}
+        <div className="space-y-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 h-full flex flex-col">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
               Quick Actions
             </h2>
-            <div className="space-y-3">
-              <button className="w-full flex items-center space-x-3 p-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors group">
-                <Upload className="w-5 h-5 text-gray-400 group-hover:text-blue-600" />
-                <div className="text-left">
-                  <p className="font-medium text-gray-700 group-hover:text-blue-700">
-                    Upload Audio File
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Drag & drop or click to browse
-                  </p>
-                </div>
-              </button>
+            <div className="space-y-3 flex-1">
+              <AudioUploader onUpload={handleAudioUpload} />
               
               <button className="w-full flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                 <Shield className="w-5 h-5 text-gray-600" />
@@ -152,63 +149,90 @@ const Dashboard: React.FC = () => {
               </button>
             </div>
           </div>
+
+          {/* Show uploaded files below Quick Actions */}
+          {audioFiles.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Uploaded Files ({audioFiles.length})
+              </h3>
+              <div className="space-y-2">
+                {audioFiles.map((file) => (
+                  <div key={file.id} className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
+                    <FileAudio className="w-4 h-4 text-blue-600" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {file.name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {(file.size / (1024 * 1024)).toFixed(2)} MB
+                      </p>
+                    </div>
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Recent Analyses
-              </h2>
-              <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                View All
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              {recentAnalyses.map((analysis) => (
-                <div key={analysis.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex-shrink-0">
-                      {analysis.status === 'completed' ? (
-                        <CheckCircle className="w-5 h-5 text-green-500" />
-                      ) : (
-                        <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        {analysis.filename}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {analysis.type} • {analysis.timestamp}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="text-right">
-                    {analysis.authenticity && (
-                      <div className="flex items-center space-x-2">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                          analysis.authenticity > 90 
-                            ? 'bg-green-100 text-green-700' 
-                            : analysis.authenticity > 70 
-                            ? 'bg-yellow-100 text-yellow-700'
-                            : 'bg-red-100 text-red-700'
-                        }`}>
-                          {analysis.authenticity > 90 ? (
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                          ) : (
-                            <AlertTriangle className="w-3 h-3 mr-1" />
-                          )}
-                          {analysis.authenticity.toFixed(1)}% Authentic
-                        </span>
-                      </div>
+        {/* Recent Analyses - Right Side */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 h-full flex flex-col">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Recent Analyses
+            </h2>
+            <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+              View All
+            </button>
+          </div>
+          
+          <div className="space-y-4 flex-1">
+            {recentAnalyses.map((analysis) => (
+              <div key={analysis.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                <div className="flex items-center space-x-4">
+                  <div className="flex-shrink-0">
+                    {analysis.status === 'completed' ? (
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                    ) : (
+                      <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                     )}
                   </div>
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      {analysis.filename}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {analysis.type} � {analysis.timestamp}
+                    </p>
+                  </div>
                 </div>
-              ))}
-            </div>
+                
+                <div className="text-right">
+                  {analysis.authenticity && (
+                    <div className="flex items-center space-x-2">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        analysis.authenticity > 90 
+                          ? 'bg-green-100 text-green-700' 
+                          : analysis.authenticity > 70 
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-red-100 text-red-700'
+                      }`}>
+                        {analysis.authenticity > 90 ? (
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                        ) : (
+                          <AlertTriangle className="w-3 h-3 mr-1" />
+                        )}
+                        {analysis.authenticity.toFixed(1)}% Authentic
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+            
+            {/* Add some padding at the bottom to match the Quick Actions height */}
+            <div className="flex-1"></div>
           </div>
         </div>
       </div>
